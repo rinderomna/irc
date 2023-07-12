@@ -19,7 +19,7 @@ void receiveMessages() {
         int bytesRead = recv(client_socket, buffer, sizeof(buffer) - 1, 0);
         if (bytesRead <= 0)
             break;
-        cout << buffer << endl;
+        cout << '\t' << buffer << endl;
     }
 }
 
