@@ -24,7 +24,9 @@ Repositório para o Trabalho 2 da disciplina "SSC0142 - Redes de Computadores" d
 
 ## Avaliação
   Primeiro módulo - 2 pontos;
+  
   Segundo módulo - 4 pontos;
+  
   Terceiro módulo - 3 pontos.
 
   Podem ser dados até 2 pontos extras para bônus feitos no trabalho, de modo que ele valerá, no máximo, 11 pontos.
