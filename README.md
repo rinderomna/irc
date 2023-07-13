@@ -63,7 +63,7 @@ Repositório para o Trabalho 2 da disciplina "SSC0142 - Redes de Computadores" d
 ### Comandos a serem implementados do cliente para o servidor
 - /connect - Estabelece conexão com o servidor;
 
-- quit - o cliente fecha a conexão e fecha a aplicação;
+- /quit - o cliente fecha a conexão e fecha a aplicação;
 
 - /ping - o servidor retorna "pong" assim que receber a mensagem.
 
