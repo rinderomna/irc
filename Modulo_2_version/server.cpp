@@ -17,10 +17,18 @@ mutex mtx;
 struct Client {
     int socket;
     int index;
-    string username;
+    string nickname;
+    bool isAdmin;
+    bool isMuted;
+    string ip;
 };
 
-vector<Client> clients;
+struct Channel{
+    string name;
+    vector<Client> clients;
+};
+
+vector<Channel> channels;
 mutex clientsMtx;
 
 void handleClient(int clientSocket, int index) {
@@ -57,11 +65,13 @@ void handleClient(int clientSocket, int index) {
     close(clientSocket);
     lock_guard<mutex> lock(clientsMtx);
 
-    for (int i = 0; i < (int)clients.size(); i++) {    
-        clients.erase(clients.begin() + index);
+    for (int i = 0; i < (int)clients.size(); i++) {
+        if(clients[i].socket == clientSocket){
+            clients.erase(clients.begin() + i);
+            cout << "Cliente " << index << " se desconectou." << endl;
+            return;
+        }
     }
-
-    cout << "Cliente " << index << " se desconectou." << endl;
 }
 
 void signalHandler(int signal) {
