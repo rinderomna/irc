@@ -52,6 +52,27 @@ Repositório para o Trabalho 2 da disciplina "SSC0142 - Redes de Computadores" d
 
   O bom funcionamento do módulo 1 foi testado ao conectar, primeiro, duas abas de terminal, cada uma rodando um dos códigos, em uma mesma rede privada. Depois disso, dois membros do grupo foram capazes de se comunicar, cada um com seu computador pessoal, dentro de uma mesma rede privada; de mesmo modo, um executou o 'client' e o outro executou o 'server'. 
 
-  A partir dos resultados obtidos (e documentados em pasta aqui no GitHub), sem maiores dificuldades, assume-se que é possível seguir para o módulo 2.
+  A partir dos resultados obtidos, assume-se que é possível seguir para o módulo 2.
 
-# Módulo 2 - 
+# Módulo 2 - Comunicação entre Múltiplos Clientes e Servidor
+## Especificação da implementação
+  Partindo da base criada no primeiro módulo, deve-se implementar um modelo de clientes-servidor que corresponda a um *chat*, de modo que uma mensagem de um cliente deve ser enviada para todos os clientes, passando por uma aplicação servidora.
+  Cada cliente deve ter um apelido definido arbitrariamente, o qual, para este módulo, pode ser simplesmente um inteiro (*index*) ou uma *string* qualquer. As mensagens aparecerão para todos os usuários (inclusive para o seu emissor) no formato **apelido: mensagem**. Cada mensagem será separada por um '\n'. Cada mensagem ainda deve ser limitada por 4096 caracteres.
+  Para fechar a conexão, um cliente pode enviar um comando de saída (/quit) ou um sinal de EOF (Ctrl + D).
+  
+### Comandos a serem implementados do cliente para o servidor
+- /connect - Estabelece conexão com o servidor;
+
+- quit - o cliente fecha a conexão e fecha a aplicação;
+
+- /ping - o servidor retorna "pong" assim que receber a mensagem.
+
+### Pontos importantes
+  O servidor deve checar se os clientes receberam as mensagem. Caso uma mensagem não seja recebida, ela deve ser enviada novamente. Após 5 falhas, o servidor deve fechar a conexão com o cliente.
+  
+  Trate *deadlocks* e possíveis problemas que possam surgir com o uso de *threads*. 
+
+  Deve ser necessário lidar com SIGINT (Ctrl + C) no *chat*. Para isso, a sugestão é adicionar um *handler* que ignore o sinal ou imprima alguma mensagem.
+
+# Módulo 3 - Implementação de Múltiplos Canais
+  
