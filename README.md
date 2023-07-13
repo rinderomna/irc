@@ -46,3 +46,12 @@ Repositório para o Trabalho 2 da disciplina "SSC0142 - Redes de Computadores" d
 
   Na implementação a ser entregue devem ser implementados *sockets* TCP que permitam a comunicação entre duas aplicações, de modo que o usuário da segunda aplicação possa ler e enviar mensagens para o usuário da primeira aplicação, e vice-versa.
   Cada mensagem é limitada por um tamanho de 4096 caracteres. Assim, caso um usuário envie uma mensagem maior do que isso, ela deverá, automaticamente, ser dividida em múltiplas mensagens.
+
+## Discussões e Resultados
+  Foi possível implementar dois códigos, representando cada uma das duas aplicações que se comunicam para o módulo 1. Uma das aplicações foi chamada de 'client.cpp' e, a outra, 'server.cpp'. Primeiro, deve-se compilar e executar o código do server e, posteriormente, o do client. Após fazer isso, tendo as duas aplicações conectadas em uma mesma rede (modifique o IP, o segundo parâmetro da função inet_pton do client, para isso). Com tudo configurado, o cliente se conecta ao servidor e pode enviar mensagens a ele, alternando com mensagens enviadas pelo código de 'server', até que eles se desconectem, com '/exit'.
+
+  O bom funcionamento do módulo 1 foi testado ao conectar, primeiro, duas abas de terminal, cada uma rodando um dos códigos, em uma mesma rede privada. Depois disso, dois membros do grupo foram capazes de se comunicar, cada um com seu computador pessoal, dentro de uma mesma rede privada; de mesmo modo, um executou o 'client' e o outro executou o 'server'. 
+
+  A partir dos resultados obtidos (e documentados em pasta aqui no GitHub), sem maiores dificuldades, assume-se que é possível seguir para o módulo 2.
+
+# Módulo 2 - 
