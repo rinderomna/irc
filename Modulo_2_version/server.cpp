@@ -92,6 +92,7 @@ void removeChannel(string channelName){
 //remove o cliente do canal atual se estiver em um
 //remove o canal quando o cliente é o ultimo a sair
 //Define o próximo administrador do canal
+// Define o Canal atual do cliente para null
 void removeClient(Client *client){
     if(!client->currentChannel) return;
     for (auto it = client->currentChannel->clients.begin(); it != client->currentChannel->clients.end(); it++) {  
@@ -110,6 +111,7 @@ void removeClient(Client *client){
         }  
     }
     client->currentChannel = nullptr;
+    client->isMuted = false;
 }
 
 void handleClient( Client* client ) {
@@ -167,12 +169,31 @@ void handleClient( Client* client ) {
                 // quero mandar todos os canais que existem e como criar um
             }
         }
+        else if (tokens[0] == "/kick" && client->isAdmin) {
+            Client *clientTarget = findClientInChannel(client->currentChannel, tokens[1]);
+            removeClient(clientTarget);
+            message = "Você foi removido do canal pelo administrador";
+            send(clientTarget->socket, message.c_str(), message.length(), 0);
+        }
+        else if (tokens[0] == "/mute" && client->isAdmin) {
+            Client *clientTarget = findClientInChannel(client->currentChannel, tokens[1]);
+            clientTarget->isMuted = true;
+        }
+        else if (tokens[0] == "/unmute" && client->isAdmin) {
+            Client *clientTarget = findClientInChannel(client->currentChannel, tokens[1]);
+            clientTarget->isMuted = false;
+        }
+        else if (tokens[0] == "/whois" && client->isAdmin) {
+            Client *clientTarget = findClientInChannel(client->currentChannel, tokens[1]);
+            message = "Ip do alvo é : " + clientTarget->ip;
+            send(client->socket, message.c_str(), message.length(), 0);
+        }
         else {
             if(!client->currentChannel){
                 message = "server: Você primeiro deve acessar um canal com /join <NOMEDOCANAL>";
                 send(client->socket, message.c_str(), message.length(), 0);
             }
-            else{
+            else if (!client->isMuted){
                 lock_guard<mutex> lock(clientsMtx);
                 for(const auto& c  : client->currentChannel->clients){
                     cout << c->nickname << endl;
