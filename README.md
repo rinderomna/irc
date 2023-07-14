@@ -75,4 +75,36 @@ Repositório para o Trabalho 2 da disciplina "SSC0142 - Redes de Computadores" d
   Deve ser necessário lidar com SIGINT (Ctrl + C) no *chat*. Para isso, a sugestão é adicionar um *handler* que ignore o sinal ou imprima alguma mensagem.
 
 # Módulo 3 - Implementação de Múltiplos Canais
+## Especificação da implementação
+  Finalmente, devem ser implementados múltiplos canais, além da função de administradores de canais.
+  Ao abrir a aplicação, o usuário deverá, por meio do comando *join*, especificar em qual canal ele deseja se conectar. Caso o canal especificado não exista, ele deve ser criado, e o primeiro usuário a se conectar a ele se torna seu administrador. 
+
+  O nome de um canal deve seguir restrições apresentadas no RFC-1459.
+
+  Um administrador do canal tem permissão de usar comandos *kick*, *mute* e *whois* em usuários.
+
+  Ao abrir a aplicação pela primeira vez, um usuário deve definir um apelido por meio do comando *nickname*, limitando o nome de usuário a 50 caracteres ASCII.
+
+#### Comandos a serem implementados
+  Além dos comandos dos módulos anteriores, devem ser implementados os seguintes:
+
+  - /join nomeCanal - entra no canal de nome especificado;
+
+  - /nickname apelidoDesejado - cliente passa a ser reconhecido pelo apelido especificado;
+
+  - /ping - servidor retorna "pong" assim que receber a mensagem.
+    
+  #### Comandos executados apenas por administradores de canais (*chops*)
+  - /kick nomeUsuario - fecha a conexão do usuário especificado;
+
+  - /mute nomeUsuario - faz com que o usuário especificado não possa enviar mensagens neste canal;
+
+  - /unmute nomeUsuario - volta a permitir que um usuário 'mudo' envie mensagens no canal;
+
+  - /whois nomeUsuario - retorna o endereço IP do usuário **apenas para o administrador**.
+
+# Item Bônus
+  Canais podem ser restritos apenas para usuários convidados. O RFC indica esse funcionamento.
+
+  O grupo pode implementar esta funcionalidade para um bônus na pontuação final do trabalho :-)
   
