@@ -14,12 +14,15 @@ int serverSocket;
 int clientIndex = 0;
 mutex mtx;
 
+struct Channel;
+
 struct Client {
     int socket;
     int index;
     string nickname;
     bool isAdmin;
     bool isMuted;
+    Channel *currentChannel;
     string ip;
 };
 
@@ -29,7 +32,7 @@ struct Channel{
 };
 
 vector<Client*> clients;
-vector<Channel> channels;
+vector<Channel*> channels;
 mutex clientsMtx;
 
 vector<string> customSplit(string str, char separator) {
@@ -47,6 +50,24 @@ vector<string> customSplit(string str, char separator) {
         }
     }
     return strings;
+}
+
+Client *findClientInChannel(Channel *channel, string client) {
+    for (const auto& c : channel->clients) {
+        if (c->name == client) {
+            return c;
+        }
+    }
+    return nullptr;
+}
+
+Channel *findChannel(string name) {
+    for (const auto& c : channels) {
+        if (c->name == name) {
+            return c;
+        }
+    }
+    return nullptr;
 }
 
 bool existNickname(string nickname){
@@ -94,18 +115,38 @@ void handleClient( Client* client ) {
         }
         else if (tokens[0] == "/join") {
             if(tokens.size() > 1){
-                //quero dar join em um canal
+                Channel* channel;
+                if((channel = findChannel(tokens[1]))){
+                    cout << "encontrei um canal existente" << endl;
+                    channel->clients.push_back(client);
+                    client->isAdmin = false;
+                }
+                else {
+                    channel = new Channel {
+                        .name = tokens[1]
+                    };
+                    client->isAdmin = true;
+                    channel->clients.push_back(client);
+                    channels.push_back(channel);
+                }
+                client->currentChannel = channel;
             }
             else {
                 // quero mandar todos os canais que existem e como criar um
             }
         }
         else {
-            message = client->nickname + ": " + message;
-            cout << message << endl;
-            lock_guard<mutex> lock(clientsMtx);
-            for (const auto& c : clients) {
-                send(c->socket, message.c_str(), message.length(), 0);
+            if(!client->currentChannel){
+                message = "server: Você primeiro deve acessar um canal com /join <NOMEDOCANAL>";
+                send(client->socket, message.c_str(), message.length(), 0);
+            }
+            else{
+                lock_guard<mutex> lock(clientsMtx);
+                message = "#" + client->currentChannel->name + "/" + client->nickname + ": " + message;
+                cout << message << endl;
+                for (const auto& c : client->currentChannel->clients) {
+                    send(c->socket, message.c_str(), message.length(), 0);
+                }
             }
         }
     }
@@ -167,6 +208,7 @@ int main() {
             .nickname = to_string(clientIndex),
             .isAdmin = false,
             .isMuted = false,
+            .currentChannel = nullptr,
             .ip = clientIPAddress,
         };
         clients.push_back(client);
