@@ -30,6 +30,8 @@ struct Client {
 
 struct Channel{
     string name;
+    bool inviteMode;
+    vector<string> channelGuests;
     vector<Client*> clients;
 };
 
@@ -179,43 +181,76 @@ void handleClient( Client* client ) {
         }
         else if (tokens[0] == "/join") {
             lock_guard<mutex> lock(clientsMtx);
-            if(tokens.size() > 1){
+            if(tokens.size() > 1) {
                 Channel* channel;
-
-                if (client->currentChannel) {
-                    removeClient(client);
-                }
-
+                //Caso o canal já exista
                 if((channel = findChannel(tokens[1]))){
-                    channel->clients.push_back(client);
-                    client->isAdmin = false;
-
-                    message = "Server: você adentrou o canal ";
-                    message += "#";
-                    message += channel->name;
+                    //Caso o canal seja apenas para convidados
+                    if (channel->inviteMode) {
+                        auto it = find(
+                            channel->channelGuests.begin(),
+                            channel->channelGuests.end(),
+                            client->nickname
+                        );
+                        //Caso o cliente seja convidado
+                        if (it != channel->channelGuests.end()) {
+                            if (client->currentChannel) {
+                                removeClient(client);
+                            }
+                            message = "Server: Você adentrou o canal ";
+                            message += "$";
+                            message += channel->name;
+                            message += " como convidado.";
+                            channel->clients.push_back(client);
+                            client->isAdmin = false;
+                            client->currentChannel = channel;
+                        } 
+                        // Caso não seja convidado
+                        else {
+                            message = "Server: Um administrador deste canal deve te convidar para que você possa entrar.";
+                        }
+                    } 
+                    //Caso o Canal seja livre
+                    else {
+                        if (client->currentChannel) {
+                            removeClient(client);
+                        }
+                        channel->clients.push_back(client);
+                        client->isAdmin = false;
+                        client->currentChannel = channel;
+                        message = "Server: Você adentrou o canal ";
+                        message += "#";
+                        message += channel->name;
+                    }
                 }
+                //Caso o canal não exista
                 else {
+                    if (client->currentChannel) {
+                        removeClient(client);
+                    }
                     channel = new Channel {
-                        .name = tokens[1]
+                        .name = tokens[1],
+                        .inviteMode = false
                     };
                     client->isAdmin = true;
                     channel->clients.push_back(client);
                     channels.push_back(channel);
 
+                    client->currentChannel = channel;
                     message = "Server: você criou o canal #";
                     message += channel->name;
                 }
-
-                client->currentChannel = channel;
                 send(client->socket, message.c_str(), message.length(), 0);
             }
+            // Caso não tenha o segundo parametro do /join
             else {
                 message = "Server: faça /join <NOME_DO_CANAL>\n";
                 message += "\tSe o canal não existir, ele é criado.\n";
                 message += "\tCanais existentes:\n";
 
                 for (int i = 0; i < (int)channels.size(); i++) {
-                    message += "\t\t* " + channels[i]->name + "\n";
+                    message = message + "\t\t" + ((channels[i]->inviteMode) ? "$" : "#"); 
+                    message = message + channels[i]->name + "\n";
                 }
 
                 if (channels.empty()) {
@@ -285,6 +320,71 @@ void handleClient( Client* client ) {
                 message = "Server: Você não tem permissão para mutar um usuário deste canal.";
                 send(client->socket, message.c_str(), message.length(), 0);
             }
+        }
+        // adicionar, 
+        else if (tokens[0] == "/invite") {
+            lock_guard<mutex> lock(clientsMtx);
+            // O canal é livre
+            if(!client->currentChannel->inviteMode){
+                //Se for um adm
+                if (client->isAdmin) {
+                    message = "Server: O modo atual deste canal é Livre. para mudar, entre o comando /changemode.";
+                }
+                //Se não for um adm
+                else {
+                    message = "Server: Além deste canal ser Livre, você não é administrador dele.";
+                }
+            }
+            // É para convidados e é um administrador
+            else if (client->isAdmin) {
+                // Se passou um parametro
+                if (tokens.size() > 1){
+                    //Se for um nickname válido
+                    if (validateNickname(tokens[1])) {
+                        auto it = find(
+                            client->currentChannel->channelGuests.begin(),
+                            client->currentChannel->channelGuests.end(),
+                            tokens[1]
+                        );
+                        // Se já estiver na lista
+                        if (it != client->currentChannel->channelGuests.end()) {
+                            message = "Server: Este usuário já estava na lista de convidados do canal.";
+                        }
+                        // Se não estiver na lista de convidados ainda
+                        else {
+                            client->currentChannel->channelGuests.push_back(tokens[1]);
+                            message = "Server: Você adicionou o usuário " + tokens[1] + "à lista de convidados do canal.";
+                        }
+                    }
+                    else {
+                        message = "Server: Este nome de usuário é inválido.";
+                    }
+                } 
+                // Não passou o nickname do convidado como parametro
+                else {
+                    message = "Server: Digite /invite <NICKNAME> para convidar um usuário.";
+                }
+            }
+            // É para convidados e não é um admin
+            else {
+                message = "Server: Você não tem permissão para convidar um usuário.";
+            }
+            send(client->socket, message.c_str(), message.length(), 0);
+        }
+        else if (tokens[0] == "/changemode") {
+            lock_guard<mutex> lock(clientsMtx);
+            if (client->isAdmin) {
+                if (client->currentChannel->inviteMode) {
+                    client->currentChannel->channelGuests.clear();
+                }
+                client->currentChannel->inviteMode = !client->currentChannel->inviteMode;
+                string mode = client->currentChannel->inviteMode ? "Apenas Convidados." : "Livre.";
+                message = "Server: Você alterou o modo do canal para " + mode;
+            }
+            else {
+                message = "Server: Você não tem permissão para mudar o modo de um canal.";
+            }
+            send(client->socket, message.c_str(), message.length(), 0);
         }
         else if (tokens[0] == "/unmute") {
             lock_guard<mutex> lock(clientsMtx);
