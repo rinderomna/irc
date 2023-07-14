@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
     signal(SIGINT, signalHandler);
 
     if (argc != 2) {
-        cout << "use: ./client <IPaddress>";
+        cout << "use: ./client <IPaddress>\n";
         return -1;
     }
 
