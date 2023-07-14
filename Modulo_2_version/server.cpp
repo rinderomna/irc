@@ -54,7 +54,7 @@ vector<string> customSplit(string str, char separator) {
 
 Client *findClientInChannel(Channel *channel, string client) {
     for (const auto& c : channel->clients) {
-        if (c->name == client) {
+        if (c->nickname == client) {
             return c;
         }
     }
@@ -77,6 +77,39 @@ bool existNickname(string nickname){
         }
     }
     return false;
+}
+
+void removeChannel(string channelName){
+    for (auto it = channels.begin(); it != channels.end(); it++){
+        if((*it)->name == channelName){
+            channels.erase(it);
+            delete *it;
+            break;
+        }
+    }
+}
+
+//remove o cliente do canal atual se estiver em um
+//remove o canal quando o cliente é o ultimo a sair
+//Define o próximo administrador do canal
+void removeClient(Client *client){
+    if(!client->currentChannel) return;
+    for (auto it = client->currentChannel->clients.begin(); it != client->currentChannel->clients.end(); it++) {  
+        if ((*it)->nickname == client->nickname) {
+            if(client->currentChannel->clients.size() == 1){
+                //excluir canal
+                removeChannel(client->currentChannel->name);
+                break;
+            }
+            else if ((*it)->isAdmin){
+                auto next = it + 1;
+                (*next)->isAdmin = true;
+            }
+            client->currentChannel->clients.erase(it);
+            break;
+        }  
+    }
+    client->currentChannel = nullptr;
 }
 
 void handleClient( Client* client ) {
@@ -117,7 +150,6 @@ void handleClient( Client* client ) {
             if(tokens.size() > 1){
                 Channel* channel;
                 if((channel = findChannel(tokens[1]))){
-                    cout << "encontrei um canal existente" << endl;
                     channel->clients.push_back(client);
                     client->isAdmin = false;
                 }
@@ -142,7 +174,11 @@ void handleClient( Client* client ) {
             }
             else{
                 lock_guard<mutex> lock(clientsMtx);
-                message = "#" + client->currentChannel->name + "/" + client->nickname + ": " + message;
+                for(const auto& c  : client->currentChannel->clients){
+                    cout << c->nickname << endl;
+                }
+                string isAdmin = client->isAdmin ? "@" : "";
+                message = "#" + client->currentChannel->name + "/" + isAdmin + client->nickname + ": " + message;
                 cout << message << endl;
                 for (const auto& c : client->currentChannel->clients) {
                     send(c->socket, message.c_str(), message.length(), 0);
@@ -154,8 +190,9 @@ void handleClient( Client* client ) {
     lock_guard<mutex> lock(clientsMtx);
 
     cout << "Cliente " << client->nickname << " se desconectou." << endl;
-    for (auto it = clients.begin(); it != clients.end(); ++it) {  
-        if ((*it)->index == client->index) {
+    removeClient(client);
+    for (auto it = clients.begin(); it != clients.end(); it++) {  
+        if ((*it)->nickname == client->nickname) {
             delete *it;
             clients.erase(it);
             break;
