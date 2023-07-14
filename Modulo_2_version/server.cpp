@@ -25,61 +25,110 @@ struct Client {
 
 struct Channel{
     string name;
-    vector<Client> clients;
+    vector<Client*> clients;
 };
 
+vector<Client*> clients;
 vector<Channel> channels;
 mutex clientsMtx;
 
-void handleClient(int clientSocket, int index) {
+vector<string> customSplit(string str, char separator) {
+    vector <string> strings;
+    int startIndex = 0, endIndex = 0;
+    for (int i = 0; i <= str.size(); i++) {
+        
+        if (str[i] == separator || i == str.size()) {
+            endIndex = i;
+            string temp;
+            //remover strings "" ""
+            temp.append(str, startIndex, endIndex - startIndex);
+            strings.push_back(temp);
+            startIndex = endIndex + 1;
+        }
+    }
+    return strings;
+}
+
+bool existNickname(string nickname){
+    for(const auto &c : clients){
+        if(c->nickname == nickname){
+            return true;
+        }
+    }
+    return false;
+}
+
+void handleClient( Client* client ) {
     char buffer[4096] = {0};
     string message;
     bool connected = true;
     while (connected) {
         memset(buffer, 0, sizeof(buffer));
-        int bytesRead = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
+        int bytesRead = recv(client->socket, buffer, sizeof(buffer) - 1, 0);
         if (bytesRead <= 0)
             break;
         message = buffer;
-        if (message == "/quit") {
-            message = "Cliente " + to_string(index) + " se desconectou.";
+        vector<string> tokens = customSplit(message, ' ');
+        if (tokens[0] == "/quit") {
             connected = false;
         } 
-        else if (message == "/ping") {
-            for (const auto &client : clients) {
-                if (client.socket == clientSocket) {
-                    string pong = "server: pong";
-                    send(client.socket, pong.c_str(), pong.length(), 0);
+        else if (tokens[0] == "/ping") {
+            string pong = "server: pong";
+            send(client->socket, pong.c_str(), pong.length(), 0);
+        }
+        // não pode existir dois usuarios com o mesmo nick
+        else if (tokens[0] == "/nickname") {
+            string nickname = "";
+            if(tokens.size() > 1){
+                if(!existNickname(tokens[1])){
+                    client->nickname = tokens[1];
+                    nickname = "Seu nickname foi alterado para " + client->nickname;
                 }
+                else {
+                    nickname = "Nome de usuário já existe, insira outro";
+                }
+            } else {
+                nickname = "Server: Para criar um nickname, digite /nickname <NICKNAME>";
+            }
+            send(client->socket, nickname.c_str(), nickname.length(), 0);
+        }
+        else if (tokens[0] == "/join") {
+            if(tokens.size() > 1){
+                //quero dar join em um canal
+            }
+            else {
+                // quero mandar todos os canais que existem e como criar um
             }
         }
         else {
-            message = to_string(index) + ": " + message;
+            message = client->nickname + ": " + message;
             cout << message << endl;
             lock_guard<mutex> lock(clientsMtx);
-            for (const auto &client : clients) {
-                send(client.socket, message.c_str(), message.length(), 0);
+            for (const auto& c : clients) {
+                send(c->socket, message.c_str(), message.length(), 0);
             }
         }
     }
-    close(clientSocket);
+    close(client->socket);
     lock_guard<mutex> lock(clientsMtx);
 
-    for (int i = 0; i < (int)clients.size(); i++) {
-        if(clients[i].socket == clientSocket){
-            clients.erase(clients.begin() + i);
-            cout << "Cliente " << index << " se desconectou." << endl;
-            return;
-        }
+    cout << "Cliente " << client->nickname << " se desconectou." << endl;
+    for (auto it = clients.begin(); it != clients.end(); ++it) {  
+        if ((*it)->index == client->index) {
+            delete *it;
+            clients.erase(it);
+            break;
+        }  
     }
 }
 
 void signalHandler(int signal) {
     if (signal == SIGINT) {
-        for (const auto &client : clients) {
-            close(client.socket);
-            close(serverSocket);
+        for (const auto& client : clients) {
+            close(client->socket);
+            delete client;
         }
+        close(serverSocket);
     }
 
     cout << "\nDesligando servidor..." << endl;
@@ -109,11 +158,20 @@ int main() {
         clientSocket = accept(serverSocket, (struct sockaddr *)&clientAddress, &addrlen);
 
         lock_guard<mutex> lock(mtx);
-        clients.push_back({clientSocket, clientIndex++, ""});
-        int currentIndex = clientIndex - 1;
-        cout << "Cliente " << currentIndex << " se conectou!" << endl;
-
-        thread clientThread(handleClient, clientSocket, currentIndex);
+        char clientIP[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &(clientAddress.sin_addr), clientIP, INET_ADDRSTRLEN);
+        string clientIPAddress(clientIP);
+        Client* client = new Client {
+            .socket = clientSocket,
+            .index = clientIndex,
+            .nickname = to_string(clientIndex),
+            .isAdmin = false,
+            .isMuted = false,
+            .ip = clientIPAddress,
+        };
+        clients.push_back(client);
+        cout << "Cliente " << clientIndex++ << " se conectou!" << endl;
+        thread clientThread(handleClient, client);
         clientThread.detach();
     }
 
