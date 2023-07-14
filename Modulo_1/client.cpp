@@ -6,8 +6,14 @@
 
 using namespace std;
 
-int main() {
-    /** Cria um socket para o client
+int main(int argc, char **argv) {
+	if (argc != 2) {
+		cout << "use: ./client <IPaddress>";
+        return -1;
+    }
+
+    /** 
+     * Cria um socket para o cliente
      * // AF_INET diz que vamos usar IPv4
      * // SOCK_STREAM diz que vamos usar um stream confiável de bytes
      * // IPPROTO_TCP diz que vamos usar TCP. Poderíamos passar zero em 
@@ -18,20 +24,20 @@ int main() {
     /**
      * A struct sockaddr_in server_address vai armazenar as informações
      * do socket a que iremos nos conectar. No caso, nos conectaremos ao
-     * localhost (127.0.0.1) na porta 8080 (o servidor deve estar escutando)
+     * IP passado como parâmetro e na porta 8080 (o servidor deve estar escutando)
      * nesta porta.
      */
     struct sockaddr_in server_address;
     server_address.sin_family = AF_INET; // IPv4
     server_address.sin_port = htons(8080); // Porta 8080
-    inet_pton(AF_INET, "127.0.0.1", &server_address.sin_addr); // Associação com IP do servidor
+    inet_pton(AF_INET, argv[1], &server_address.sin_addr); // Associação com IP do servidor
 
     /**
      * Vamos agora de fato nos conectar ao servidor. Passamos os nosso socket que criamos (veja que não
      * especificamos em que porta estamos escutando, ou seja, não utilizamos bind, porque nós, como clientes
      * não nos importamos com isso. Temos nosso IP, independentemente de a partir de que porta, queremos nos)
      * conectar ao servidor num endereço IP e porta específica. No caso, sabemos que o servidor ao qual queremos
-     * nos conector está rodando no endereço "127.0.0.1" escutando na porta 8080). Passamos em seguida as 
+     * nos conector está rodando no endereço passado e escutando na porta 8080). Passamos em seguida as 
      * informações de endereço do socket do servidor, que configuramos acima. Por fim, o tamanho desta estrutura
      * do socket do servidor (por algum motivo, o C++ precisa disso). 
      */

@@ -7,7 +7,7 @@
 using namespace std;
 
 int main() {
-    /** Cria um socket para o client
+    /** Cria um socket para o servidor
      * // AF_INET diz que vamos usar IPv4
      * // SOCK_STREAM diz que vamos usar um stream confiável de bytes
      * // IPPROTO_TCP diz que vamos usar TCP. Poderíamos passar zero em 
@@ -28,7 +28,7 @@ int main() {
     /**
      * Como somos um servidor, vamos utilizar a primitiva de socket 'bind' para 
      * atrelar nosso socket com as informações de nos endereço e porta específicos,
-     * no caso IP '127.0.0.1' e porta '8080'. 
+     * no caso porta '8080'. 
      */
     bind(server_socket, (struct sockaddr *)&server_address, sizeof(server_address));
 
