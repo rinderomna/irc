@@ -100,7 +100,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    // Iniando threads para lidar com recebimento e envio de mensagens
+    // Iniciando threads para lidar com recebimento e envio de mensagens
     thread receiveThread(receiveMessages);
     thread sendThread(sendMessages);
 
