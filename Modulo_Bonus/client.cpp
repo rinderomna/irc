@@ -9,9 +9,11 @@
 
 using namespace std;
 
-int client_socket;
-mutex mtx;
+// Variáveis Globais
+int client_socket; // Socket do cliente
+mutex mtx;         // Mutex para controle de acesso concorrente
 
+// Função para lidar com o recebimento de mensagens do servidor
 void receiveMessages() {
     char buffer[4096] = {0};
     while (true) {
@@ -23,6 +25,7 @@ void receiveMessages() {
     }
 }
 
+// Função para lidar com o envio de mensagens ao servidor
 void sendMessages() {
     string message;
     while (true) {
@@ -34,6 +37,7 @@ void sendMessages() {
     close(client_socket);
 }
 
+// Função para lidar com interrupção do programa
 void signalHandler(int signal) {
     if (signal == SIGINT) {
         string quit = "/quit";
@@ -54,8 +58,14 @@ int main(int argc, char **argv) {
         return -1;
     }
 
+    // Criando o socket do cliente
     client_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (client_socket < 0) {
+        cout << "Erro ao criar o socket." << endl;
+        return -1;
+    }
 
+    // Configurando o socket do servidor com que o cliente irá se conectar
     struct sockaddr_in server_address;
     server_address.sin_family = AF_INET;
     server_address.sin_port = htons(8080);
@@ -66,6 +76,8 @@ int main(int argc, char **argv) {
     string command;
     while (true) {
         cin >> command;
+        
+        // Comando para se conectar ao servidor
         if (command == "/connect") {
             if (connect(client_socket, (struct sockaddr *)&server_address, sizeof(server_address)) < 0) {
                 cout << "Erro ao conectar ao servidor." << endl;
@@ -73,14 +85,22 @@ int main(int argc, char **argv) {
             }
             cout << "Conectado ao servidor." << endl;
             break;
-        } else if (command == "/quit") {
+        } 
+        // Comando para desconectar
+        else if (command == "/quit") {
+            string quit = "/quit";
+            send(client_socket, quit.c_str(), quit.length(), 0);
+            close(client_socket);
             cout << "Programa encerrado." << endl;
             return 0;
-        } else {
+        } 
+        // Comando não é válido
+        else {
             cout << "Comando inválido. Digite /connect para se conectar ao servidor." << endl;
         }
     }
 
+    // Iniando threads para lidar com recebimento e envio de mensagens
     thread receiveThread(receiveMessages);
     thread sendThread(sendMessages);
 
