@@ -120,8 +120,8 @@ bool existNickname(string nickname){
 void removeChannel(string channelName){
     for (auto it = channels.begin(); it != channels.end(); it++){
         if((*it)->name == channelName){
-            channels.erase(it);
             delete *it;
+            channels.erase(it);
             break;
         }
     }
