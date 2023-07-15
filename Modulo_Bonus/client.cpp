@@ -4,14 +4,12 @@
 #include <unistd.h>
 #include <cstring>
 #include <thread>
-#include <mutex>
 #include <csignal>
 
 using namespace std;
 
 // Variáveis Globais
 int client_socket; // Socket do cliente
-mutex mtx;         // Mutex para controle de acesso concorrente
 
 // Função para lidar com o recebimento de mensagens do servidor
 void receiveMessages() {
