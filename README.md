@@ -2,7 +2,7 @@
 
 Repositório para o Trabalho 2 da disciplina "SSC0142 - Redes de Computadores" do ICMC - USP - São Carlos, ministrada pela professora Kalinka Regina Lucas Jaquie Castelo Branco.
 
-![VÍDEO FINAL](https://www.youtube.com/watch?v=-HIGsdjxWw0)
+[VÍDEO FINAL](https://www.youtube.com/watch?v=-HIGsdjxWw0)
 
 ## Grupo 6
   O projeto deve ser feito por, no máximo, 3 pessoas. Estamos seguindo a numeração de grupos que está disponível em planilha desde o trabalho 1, de camada de enlace.
