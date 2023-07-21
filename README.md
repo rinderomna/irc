@@ -44,7 +44,7 @@ Informações do Sistema Operacional em que o programa foi testado:
 - um arquivo .zip com todo o sistema com os códigos, um arquivo Makefile para compilar e executar o código e um README com os nomes dos membros do grupo, a versão do sistema operacional (Linux) e do compilador utilizado, além de quaisquer instruções adicionais que o grupo julgar necessárias.
 - OUTRA OPÇÃO é entregar um repositório do GitHub com todos os arquivos acima listados.
   
-![What should be delivered](/especification/what_to_deliver.png)
+![What should be delivered](/specification/what_to_deliver.png)
 
 - Deve ser disponibilizado também um vídeo (link para o vídeo no youtube ou drive presente no README) e link deve estar aberto/acessível. No vídeo, todos os participantes devem explicar parte do ***que*** foi implementado e ***como*** foi implementado; o chat deve ser executado de modo que sejam apresentadas todas as suas funcionalidades.
 
